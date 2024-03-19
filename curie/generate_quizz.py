@@ -1,8 +1,8 @@
-import ast
-
 from langchain.docstore.document import Document as LangchainDocument
 
-from curie.utils import language_detection, get_topics, split_documents, generation
+from curie.llm_provider import generation
+from curie.utils import get_topics, language_detection, split_documents
+from curie.validator import validate_json_data
 
 
 def quiz(content):
@@ -11,7 +11,7 @@ def quiz(content):
 
     corpus = [LangchainDocument(page_content=content.replace("\n\n", " "))]
 
-    content_split = split_documents(512, corpus)
+    content_split = split_documents(1000, corpus)
 
     content_split = [doc.page_content for doc in content_split]
 
@@ -19,17 +19,10 @@ def quiz(content):
     for doc in content_split:
         # Try to parse the JSON string
         doc_quiz = generation(doc, lang, " ,".join(topics))  # generate quiz
-        print(type(doc_quiz))
-        try:
-            doc_quiz = eval(doc_quiz.replace("'", '"'))  # convert to json
-            print(type(doc_quiz))
-            quiz_collection = doc_quiz["collection"]  # get collection
-            print(type(quiz_collection))
-            quiz_collection = ast.literal_eval(quiz_collection)  # convert to list
-            print(type(quiz_collection))
-            all_quiz.extend(eval(_) for _ in quiz_collection)  # add to all_quiz
-        except Exception:
-            # If an error is raised, print an error message and the problematic string
-            print("An error occurred while parsing the JSON string:")
-            print(doc_quiz)
+        validation, json_object, error_message = validate_json_data(doc_quiz)
+        if validation:
+            all_quiz.append(json_object)
+        else:
+            print(f"Validation failed: {error_message}")
+
     return all_quiz

@@ -1,6 +1,5 @@
-from typing import Optional, List
+from typing import List, Optional
 
-import ollama
 import spacy
 from langchain.docstore.document import Document as LangchainDocument
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -85,49 +84,3 @@ def split_documents(
             docs_processed_unique.append(doc)
 
     return docs_processed_unique
-
-
-def generation(content, language, followings):
-    prompt = f"""
-     [DEFINITIONS]
-- SYSTEM MESSAGE: Rules that the assistant must adhere to. THE OUTPUT MUST BE IN THE SAME LANGUAGE AS THE CORPUS. 
-- USER GOAL: The desired outcome for the user.
-- CORPUS: The base material for flashcard content.
-
-[DIRECTIVES]
-- Flashcard Creation: Assist in producing questions and answers for study based on the specified material.
-- Language Consistency: Ensure all content matches the language of the provided material.
-     OUTPUT MUST BE IN THE SAME LANGUAGE AS {language.upper()}. 
-- THE QUESTION AND THE ANSWER MUST BE MAINLY RELATED TO THE FOLLOWING THEMES: {followings.upper()} 
-
-[DETAILS]
-- Content Requirements: Questions and answers must derive exclusively from the CORPUS and maintain thematic relevance.
-- Language Specification: Maintain the same language as specified, applying to both questions and answers.
-
-[OUTPUT TEMPLATE] - Format for Delivery: {{"collection": [{{"question"
-    : "<Instruction for crafting questions aligning with user goals and language THE QUESTION MUST BE IN THE SAME 
-     LANGUAGE AS THE CORPUS.>", 
-      "answer": "<Guideline for providing answers based on the CORPUS, respecting user goals and specified themes. THE 
-       ANSWER MUST BE IN THE SAME LANGUAGE AS THE CORPUS.>"}}]}}
-
-[CORPUS] {content}
-
-
-[THEMES] - Focus for Questions and Answers: Specified themes within the CORPUS. THE QUESTION AND THE ANSWER MUST BE 
- MAINLY RELATED TO THE FOLLOWING THEMES: {followings.upper()}
-
-[NOTES]
-- Ensure all flashcard content aligns with user instructions and system directives.
-- Keep language consistent across questions and answers as per the CORPUS language.
-DON'T INVENT THE DATA BASE ON THE CORPUS ALONE. 
-
-Please output a collection between User and Assistant in the following format: {{ "collection": [ {{"question": 
- "followup question -Instruction for crafting questions aligning with user goals and language THE QUESTION MUST BE IN 
-  THE SAME LANGUAGE AS THE CORPUS.", "answer": "the response - Guideline for providing answers based on the 
-   CORPUS, respecting user goals and specified themes. THE ANSWER MUST BE IN THE SAME LANGUAGE AS THE CORPUS.'\n'"}}] 
-    }}"""
-
-    response = ollama.chat(
-        model="dolphin-mistral", messages=[{"role": "user", "content": prompt}]
-    )
-    return response["message"]["content"]
