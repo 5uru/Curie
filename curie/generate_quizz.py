@@ -11,7 +11,7 @@ def quiz(content):
 
     corpus = [LangchainDocument(page_content=content.replace("\n\n", " "))]
 
-    content_split = split_documents(1000, corpus)
+    content_split = split_documents(1500, corpus)
 
     content_split = [doc.page_content for doc in content_split]
 
@@ -23,6 +23,12 @@ def quiz(content):
         if validation:
             all_quiz.append(json_object)
         else:
-            print(f"Validation failed: {error_message}")
+            # repeat two more times
+            for _ in range(2):
+                doc_quiz = generation(doc, lang, " ,".join(topics))
+                validation, json_object, error_message = validate_json_data(doc_quiz)
+                if validation:
+                    all_quiz.append(json_object)
+                    break
 
-    return all_quiz
+    return all_quiz, topics
