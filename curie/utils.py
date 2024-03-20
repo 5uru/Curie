@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 
 import spacy
@@ -6,6 +7,15 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langdetect import detect
 from pke.unsupervised import TopicRank
 from transformers import AutoTokenizer
+
+
+def setup_logging():
+    logging.basicConfig(
+        filename="app.log",
+        filemode="w",
+        format="%(name)s - %(levelname)s - %(message)s",
+        level=logging.DEBUG,
+    )
 
 
 def language_detection(content):

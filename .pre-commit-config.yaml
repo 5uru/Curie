@@ -66,14 +66,6 @@ repos:
         args: [ --fix ]
       - id: ruff-format
 
-  - repo: https://github.com/pycqa/flake8
-    rev: '3.9.2'  # pick a git hash / tag to point to
-    hooks:
-      - id: flake8
-        additional_dependencies: [ flake8-docstrings, flake8-bugbear, flake8-bandit ]
-        # Add any other desired flake8 plugins
-        # Exclude specific directories or files if needed
-        exclude: '^(venv|dist|build)/,^setup\.py$'
 
 pre-commit:
   default_stages: [ pre-commit ]

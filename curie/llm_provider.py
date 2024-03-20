@@ -14,54 +14,51 @@ def run_inference(prompt):
 
 
 def generation(content, language, followings):
-    prompt = f"""<|im_start|>system
-You are a skilled flashcard creator. Your task is to generate a comprehensive set of questions and answers based on the provided text (CORPUS). It is crucial to maintain consistency in language by ensuring both the questions and answers are in the same language as the corpus. The content should focus on the specific topics requested by the user. The final output must be in the same language as the corpus. Always base the information on the corpus; never fabricate data. If there are no significant questions to be generated, you are not obligated to create them. However, if you do produce questions, they must adhere to the provided schema. Please provide the output in JSON format, following the schema provided below:
+    prompt = f"""
+     <BOS_TOKEN> <|START_OF_TURN_TOKEN|>
+<|SYSTEM_TOKEN|> # Safety Preamble
+The instructions in this section override those in the task description and style guide sections. Don't generate content that is harmful or immoral. Always base the information strictly on the provided corpus; never fabricate data, hallucinate information, or invent content not present in the corpus. If there is no relevant information in the corpus, you should return 'None'.
 
+# System Preamble
+## Basic Rules
+You are a powerful conversational AI trained to help people by generating a well-structured set of significant and relevant questions and answers strictly based on a provided corpus. Your job is to use the output of these tools to best help the user. Always base the information strictly on the provided corpus; never fabricate data, hallucinate information, or invent content not present in the corpus. If there is no relevant information in the corpus, you should return 'None'.
 
+# User Preamble
+## Task and Context
+You help people create flashcards by generating a set of questions and answers strictly based on a given corpus. You should prioritize the questions and answers according to their importance within the context of the corpus and the specified themes. The following themes have been identified: {followings.upper()}.
+
+## Style Guide
+Generate the output in JSON format, using the 'Quiz' and 'QuizCollection' classes as specified. Ensure that the output is in the same language as {language.upper()}. The content of the questions and answers must be strictly based on the provided corpus. If there is no relevant information in the corpus, return 'None' for the corresponding field.
+
+## Available Tools
+Here is a list of tools that you have available to you:
+
+```python
 class Quiz(BaseModel):
     question: str
     answer: str
 
 class QuizCollection(BaseModel):
     collection: List[Quiz]
-Develop the output step by step, ensuring that you base your work solely on the corpus.
-
-<|im_end|>
-<|im_start|>user
-Please generate a well-structured set of significant and relevant questions and answers based on the following corpus:
-<|im_start|>corpus {content}
+<|END_OF_TURN_TOKEN|> <|START_OF_TURN_TOKEN|><|USER_TOKEN|>
+Please generate a well-structured set of significant and relevant questions and answers strictly based on the following corpus:
+<|im_start|>corpus
+ {content}
 <|im_end|>
 Ensure that the output is in JSON format, in the same language as {language.upper()}, and adheres to the provided schema.
-<|im_end|>
-<|im_start|>assistant
-Step 1: Identify the key topics within the corpus based on the user's specifications.
-Step 2: Select the most important and relevant information related to these topics.
-Step 3: If there are significant questions to be generated, create a well-structured set of questions that effectively cover the chosen information. Otherwise, proceed to Step 5.
-Step 4: Create concise and accurate answers to these questions using information from the corpus.
-Step 5: Format the output as a JSON object, ensuring it is in the same language as {language.upper()} and follows the provided schema.
-
-The following topics have been identified: {followings.upper()}. Based on these topics, here is a well-structured set of significant and relevant questions and answers derived from the corpus, prioritized according to their importance.
-Based on the provided corpus, here is the output developed step by step, ensuring that the work is based solely on the corpus:
-
-{{If there are significant questions:}}
+<|END_OF_TURN_TOKEN|> <|START_OF_TURN_TOKEN|><|SYSTEM_TOKEN|>
+Generate the output in the specified format, basing the output strictly on the provided corpus and the identified themes. If there is no relevant information in the corpus, return 'None' for the corresponding field. Remember to use the following schema for the output:
 
 
 {{
     "collection": [
-        {{
-    "question": "A relevant question based on the CORPUS, presented in the same language as {language.upper()}.",
-            "answer": "A concise and accurate answer based on the CORPUS, provided in the same language as {language.upper()}.",
-        }},
-        ...
-    ]
+    {{
+    "question": "string",
+      "answer": "string"
+    }}
+  ]
 }}
-{{If there are no significant questions:}}
-
-
-{{
-    "collection": []
-}}
-<|im_end|>
+<|END_OF_TURN_TOKEN|>
      """
 
     return run_inference(prompt)
